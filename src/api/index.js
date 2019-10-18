@@ -1,5 +1,10 @@
 import { version } from "../../package.json";
 import { Router } from "express";
+import Ajv from "ajv";
+import validateComplaintAJV from "../models/validateComplaint";
+import validateCategoryAJV from "../models/validateCategory";
+import validatePublicKeyAJV from "../models/validatePublicKey";
+var ajv = new Ajv();
 
 export default ({ config, db }) => {
   let api = Router();
@@ -33,8 +38,15 @@ export default ({ config, db }) => {
     });
   });
 
-  api.post("/category", (req, res) => {
+  api.post("/category", (req, res, next) => {
     //take category_details from req and insert into category_details table
+
+    const validate = ajv.compile(validateCategoryAJV);
+    const valid = validate(req.body);
+    if (!valid) {
+      return next({ Errors: validate.errors });
+    }
+
     const { category_name, created_by } = req.body;
 
     const uuidv1 = require('uuid/v1');
@@ -71,7 +83,6 @@ export default ({ config, db }) => {
   });
 
   api.delete("/category/:cid", (req, res) => {
-    console.log("req", req.params);
     //take category_details cid from path and find the cid and update flag
     db.query(`update category_details set active=false where uuid='${req.params.cid}'`,
       (err, response) => {
@@ -115,8 +126,15 @@ export default ({ config, db }) => {
   });
 
 
-  api.post("/public_key", (req, res) => {
+  api.post("/public_key", (req, res, next) => {
     //take public_key_details from req and insert into public_key_details table
+
+    const validate = ajv.compile(validatePublicKeyAJV);
+    const valid = validate(req.body);
+    if (!valid) {
+      return next({ Errors: validate.errors });
+    }
+
     const { start_date, end_date, created_by } = req.body;
 
     const uuidv1 = require('uuid/v1');
@@ -137,8 +155,6 @@ export default ({ config, db }) => {
 
 
   api.put("/public_key/:pkid", (req, res) => {
-    console.log("req", req.params);
-    console.log("body", req.body);
 
     const { end_date, updated_by } = req.body;
     const updated_time = new Date().getTime();
@@ -156,7 +172,7 @@ export default ({ config, db }) => {
   });
 
   api.delete("/public_key/:pkid", (req, res) => {
-    console.log("req", req.params);
+
     //take public_key_details cid from path and find the pkid and update flag
     db.query(`update public_key_details set active=false where uuid='${req.params.pkid}'`,
       (err, response) => {
@@ -200,16 +216,24 @@ export default ({ config, db }) => {
   });
 
 
-  api.post("/complain", (req, res) => {
+  api.post("/complain", (req, res, next) => {
     //take complain_details from req and insert into complain_details table
+
+    const validate = ajv.compile(validateComplaintAJV);
+    const valid = validate(req.body);
+    if (!valid) {
+      return next({ Errors: validate.errors });
+    }
+
     const { category_name, complain_details, picture, type, created_by } = req.body;
+
     const user_id = null
     const uuidv1 = require('uuid/v1');
     const uuid = uuidv1()
 
     const created_time = new Date().getTime();
 
-    db.query(`insert into complain_details(uuid,category_name,complain_details,picture,user_id,status,type,created_by,created_time,active) values('${uuid}','${category_name}','${complain_details}','${picture}','${user_id}','pending','${type}','${created_by}','${created_time}',true)`,
+    db.query(`insert into complain_details(uuid,category_name,complain_details,picture,user_id,status,type,created_by,created_time,active) values('${uuid}','${category_name}','${complain_details}','${picture}','${user_id}','Pending','${type}','${created_by}','${created_time}',true)`,
       (err, response) => {
         if (err) {
           console.log(err.stack);
@@ -222,9 +246,6 @@ export default ({ config, db }) => {
 
 
   api.put("/complain/:cpid", (req, res) => {
-    console.log("req", req.params);
-    console.log("body", req.body);
-
     const { comment, updated_by } = req.body;
     const updated_time = new Date().getTime();
 
@@ -241,7 +262,7 @@ export default ({ config, db }) => {
   });
 
   api.delete("/complain/:cpid", (req, res) => {
-    console.log("req", req.params);
+
     //take complain_details cid from path and find the pkid and update flag
     db.query(`update complain_details set active=false where uuid='${req.params.cpid}'`,
       (err, response) => {
@@ -253,7 +274,6 @@ export default ({ config, db }) => {
         }
       })
   })
-
 
   return api;
 };
