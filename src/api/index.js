@@ -201,6 +201,20 @@ export default ({ config, db }) => {
       })
   })
 
+  api.post("/getcomplain", (req, res) => {
+    //complain_details table and return the complain_id
+    const { uuid } = req.body;
+    db.query(`SELECT * from complain_details where uuid='${uuid}' and active=true`,
+      (err, response) => {
+        if (err) {
+          console.log(err.stack);
+        } else {
+          console.log(response.rows);
+          res.json({ "complain": response.rows });
+        }
+      })
+  })
+
   // perhaps expose some API metadata at the root
   api.get("/complain/:cpid", (req, res) => {
     //find cid in category_details table and return the complain
@@ -225,15 +239,14 @@ export default ({ config, db }) => {
       return next({ Errors: validate.errors });
     }
 
-    const { category_name, complain_details, picture, type, created_by } = req.body;
+    const { uuid, category_name, complain_details, user_id, picture, type, created_by } = req.body;
 
-    const user_id = null
     const uuidv1 = require('uuid/v1');
-    const uuid = uuidv1()
+    const complain_id = uuidv1()
 
     const created_time = new Date().getTime();
 
-    db.query(`insert into complain_details(uuid,category_name,complain_details,picture,user_id,status,type,created_by,created_time,active) values('${uuid}','${category_name}','${complain_details}','${picture}','${user_id}','Pending','${type}','${created_by}','${created_time}',true)`,
+    db.query(`insert into complain_details(complain_id,uuid,category_name,complain_details,picture,user_id,status,type,created_by,created_time,active) values('${complain_id}','${uuid}','${category_name}','${complain_details}','${picture}','${user_id}','Pending','${type}','${created_by}',${created_time},true)`,
       (err, response) => {
         if (err) {
           console.log(err.stack);
@@ -250,7 +263,7 @@ export default ({ config, db }) => {
     const updated_time = new Date().getTime();
 
     //take complain_details cid from path and find the cpid and update
-    db.query(`update complain_details set status='Completed', comment='${comment}',updated_by='${updated_by}', updated_time='${updated_time}' where uuid='${req.params.cpid}'`,
+    db.query(`update complain_details set status='Completed', comment='${comment}',updated_by='${updated_by}', updated_time='${updated_time}' where complain_id='${req.params.cpid}'`,
       (err, response) => {
         if (err) {
           console.log(err.stack);
