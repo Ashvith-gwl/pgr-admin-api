@@ -289,23 +289,5 @@ export default ({ config, db }) => {
   })
 
 
-
-
-
-
-  api.delete("/complain/:", (req, res) => {
-
-    //take complain_details cid from path and find the pkid and update flag
-    db.query(`update complain_details set active=false where uuid='${req.params.cpid}'`,
-      (err, response) => {
-        if (err) {
-          console.log(err.stack);
-        } else {
-          console.log(response.rows);
-          res.json({ version, status: "live", method: "delete" });
-        }
-      })
-  })
-
   return api;
 };
