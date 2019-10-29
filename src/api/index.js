@@ -215,19 +215,19 @@ export default ({ config, db }) => {
       })
   })
 
-  // perhaps expose some API metadata at the root
-  api.get("/complain/:cpid", (req, res) => {
-    //find cid in category_details table and return the complain
+  // // perhaps expose some API metadata at the root
+  // api.get("/complain/:cpid", (req, res) => {
+  //   //find cid in category_details table and return the complain
 
-    db.query(`SELECT * from complain_details where uuid='${req.params.cpid}' and active=true`, (err, response) => {
-      if (err) {
-        console.log(err.stack);
-      } else {
-        console.log(response.rows);
-        res.json({ "complain": response.rows });
-      }
-    });
-  });
+  //   db.query(`SELECT * from complain_details where uuid='${req.params.cpid}' and active=true`, (err, response) => {
+  //     if (err) {
+  //       console.log(err.stack);
+  //     } else {
+  //       console.log(response.rows);
+  //       res.json({ "complain": response.rows });
+  //     }
+  //   });
+  // });
 
 
   api.post("/complain", (req, res, next) => {
@@ -277,7 +277,7 @@ export default ({ config, db }) => {
   api.delete("/complain/:cpid", (req, res) => {
 
     //take complain_details cid from path and find the pkid and update flag
-    db.query(`update complain_details set active=false where uuid='${req.params.cpid}'`,
+    db.query(`update complain_details set active=false where complain_id='${req.params.cpid}'`,
       (err, response) => {
         if (err) {
           console.log(err.stack);
